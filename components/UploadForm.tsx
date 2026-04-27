@@ -47,8 +47,8 @@ const UploadForm = () => {
         }
 
         setIsSubmitting(true);
-        toast.info("1/5: Checking if book exists...");
-        console.log("Starting upload process...", data);
+
+        // PostHog -> Track Book Uploads...
 
         try {
             const existsCheck = await checkBookExists(data.title);
@@ -63,36 +63,18 @@ const UploadForm = () => {
             const fileTitle = data.title.replace(/\s+/g, '-').toLowerCase();
             const pdfFile = data.pdfFile;
 
-            toast.info("2/5: Parsing PDF file...");
-            console.log("Parsing PDF...");
-            let parsedPDF;
-            try {
-                parsedPDF = await parsePDFFile(pdfFile);
-            } catch (err: any) {
-                console.error("PDF Parsing error:", err);
-                toast.error(`PDF Error: ${err.message}`);
-                return;
-            }
+            const parsedPDF = await parsePDFFile(pdfFile);
 
             if(parsedPDF.content.length === 0) {
                 toast.error("Failed to parse PDF. Please try again with a different file.");
                 return;
             }
 
-            toast.info("3/5: Uploading PDF to Vercel Blob...");
-            console.log("Uploading PDF to Blob...");
-            let uploadedPdfBlob;
-            try {
-                uploadedPdfBlob = await upload(fileTitle, pdfFile, {
-                    access: 'public',
-                    handleUploadUrl: '/api/upload',
-                    contentType: 'application/pdf'
-                });
-            } catch (err: any) {
-                console.error("Blob upload error:", err);
-                toast.error(`Upload Error: ${err.message}`);
-                return;
-            }
+            const uploadedPdfBlob = await upload(fileTitle, pdfFile, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                contentType: 'application/pdf'
+            });
 
             let coverUrl: string;
 
@@ -116,27 +98,17 @@ const UploadForm = () => {
                 coverUrl = uploadedCoverBlob.url;
             }
 
-            toast.info("4/5: Saving book to MongoDB...");
-            console.log("Saving to DB...", { clerkId: userId, title: data.title });
             const book = await createBook({
                 clerkId: userId,
                 title: data.title,
                 author: data.author,
-                persona: data.persona || 'rachel',
+                persona: data.persona,
                 fileURL: uploadedPdfBlob.url,
                 fileBlobKey: uploadedPdfBlob.pathname,
                 coverURL: coverUrl,
                 fileSize: pdfFile.size,
             });
 
-            if(!book.success) {
-                console.error("MongoDB createBook failed:", book.error);
-                toast.error(typeof book.error === 'string' ? book.error : "Failed to create book in database");
-                if (book.isBillingError) {
-                    router.push("/subscriptions");
-                }
-                return;
-            }
 
             if(book.alreadyExists) {
                 toast.info("Book with same title already exists.");
@@ -145,22 +117,19 @@ const UploadForm = () => {
                 return;
             }
 
-            toast.info("5/5: Saving book segments to MongoDB...");
-            console.log("Saving segments...");
             const segments = await saveBookSegments(book.data._id, userId, parsedPDF.content);
 
             if(!segments.success) {
-                console.error("MongoDB saveBookSegments failed:", segments.error);
                 toast.error("Failed to save book segments");
                 throw new Error("Failed to save book segments");
             }
 
-            toast.success("Upload complete!");
             form.reset();
             router.push('/');
-        } catch (error: any) {
-            console.error("Catch block error:", error);
-            toast.error(`Critical Error: ${error.message || "Failed to upload book. Please try again later."}`);
+        } catch (error) {
+            console.error(error);
+
+            toast.error("Failed to upload book. Please try again later.");
         } finally {
             setIsSubmitting(false);
         }

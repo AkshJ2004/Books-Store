@@ -4,11 +4,13 @@ import {auth} from "@clerk/nextjs/server";
 import {MAX_FILE_SIZE} from "@/lib/constants";
 
 export async function POST(request: Request): Promise<NextResponse> {
+    const body = (await request.json()) as HandleUploadBody;
+    
     try {
-        const body = (await request.json()) as HandleUploadBody;
+
 
         const jsonResponse = await handleUpload({
-            token: process.env.BLOB_READ_WRITE_TOKEN,
+           token: process.env.BLOB_READ_WRITE_TOKEN,
             body,
             request,
             onBeforeGenerateToken: async () => {
@@ -24,6 +26,7 @@ export async function POST(request: Request): Promise<NextResponse> {
                     maximumSizeInBytes: MAX_FILE_SIZE,
                     tokenPayload: JSON.stringify({ userId })
                 }
+                
         } ,
             onUploadCompleted: async ({ blob, tokenPayload }) => {
                 console.log('File uploaded to blob: ', blob.url)
@@ -34,13 +37,11 @@ export async function POST(request: Request): Promise<NextResponse> {
                 // TODO: PostHog
             }
         });
-
+console.log("TOKEN:", process.env.BLOB_READ_WRITE_TOKEN);
         return NextResponse.json(jsonResponse)
     } catch (e) {
         const message = e instanceof Error ? e.message : "An unknown error occurred";
         const status = message.includes('Unauthorized') ? 401 : 500;
-        console.error('Upload error', e);
-        const clientMessage = status === 401 ? 'Unauthorized' : 'Upload failed';
-        return NextResponse.json({ error: clientMessage }, { status });
+        return NextResponse.json({ error: message }, { status });
     }
 }
