@@ -12,20 +12,9 @@ export const getAllBooks = async (search?: string) => {
     try {
         await connectToDatabase();
 
-        let query = {};
 
-        if (search) {
-            const escapedSearch = escapeRegex(search);
-            const regex = new RegExp(escapedSearch, 'i');
-            query = {
-                $or: [
-                    { title: { $regex: regex } },
-                    { author: { $regex: regex } },
-                ]
-            };
-        }
 
-        const books = await Book.find(query).sort({ createdAt: -1 }).lean();
+        const books = await Book.find().sort({ createdAt: -1 }).lean();
 
         return {
             success: true,
