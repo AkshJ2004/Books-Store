@@ -110,12 +110,21 @@ const UploadForm = () => {
             });
 
 
+            if (!book || !book.success || !book.data) {
+                const errorMessage = book?.error 
+                    ? (typeof book.error === 'string' ? book.error : (book.error as any).message || JSON.stringify(book.error))
+                    : "Failed to create book record.";
+                toast.error(errorMessage);
+                return;
+            }
+
             if(book.alreadyExists) {
                 toast.info("Book with same title already exists.");
                 form.reset()
                 router.push(`/books/${book.data.slug}`)
                 return;
             }
+
 
             const segments = await saveBookSegments(book.data._id, userId, parsedPDF.content);
 
