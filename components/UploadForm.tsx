@@ -110,11 +110,11 @@ const UploadForm = () => {
             });
 
 
-            if (!book || !book.success || !book.data) {
-                const errorMessage = book?.error 
-                    ? (typeof book.error === 'string' ? book.error : (book.error as any).message || JSON.stringify(book.error))
-                    : "Failed to create book record.";
-                toast.error(errorMessage);
+            if(!book.success) {
+                toast.error((book as any).error as string || "Failed to create book");
+                if ((book as any).isBillingError) {
+                    router.push("/subscriptions");
+                }
                 return;
             }
 
@@ -124,7 +124,6 @@ const UploadForm = () => {
                 router.push(`/books/${book.data.slug}`)
                 return;
             }
-
 
             const segments = await saveBookSegments(book.data._id, userId, parsedPDF.content);
 
