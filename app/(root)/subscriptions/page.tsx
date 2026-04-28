@@ -1,31 +1,18 @@
-import React from 'react'
-import HeroSection from "@/components/HeroSection";
-import BookCard from "@/components/BookCard";
-import {getAllBooks} from "@/lib/actions/book.actions";
-import Search from "@/components/Search";
+import { PricingTable } from "@clerk/nextjs";
 
-const Page = async ({ searchParams }: { searchParams: Promise<{ query?: string }> }) => {
-    const { query } = await searchParams;
+export default function SubscriptionsPage() {
+  return (
+    <div className="container wrapper py-10">
+      <div className="flex flex-col items-center text-center mb-10">
+        <h1 className="text-4xl font-bold font-serif mb-4">Choose Your Plan</h1>
+        <p className="text-muted-foreground max-w-2xl">
+          Upgrade to unlock more books, longer sessions, and advanced features.
+        </p>
+      </div>
 
-    const bookResults = await getAllBooks(query)
-    const books = bookResults.success ? bookResults.data ?? [] : []
-
-    return (
-        <main className="wrapper container">
-            <HeroSection />
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 mb-10">
-                <h2 className="text-3xl font-serif font-bold text-[#212a3b]">Recent Books</h2>
-                <Search />
-            </div>
-
-            <div className="library-books-grid">
-                {books.map((book) => (
-                    <BookCard key={book._id} title={book.title} author={book.author} coverURL={book.coverURL} slug={book.slug} />
-                ))}
-            </div>
-        </main>
-    )
+      <div className="clerk-pricing-container">
+        <PricingTable />
+      </div>
+    </div>
+  );
 }
-
-export default Page
