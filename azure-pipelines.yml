@@ -20,6 +20,8 @@ variables:
     value: "20.x"
   - name: NEXT_TELEMETRY_DISABLED
     value: "1"
+  - name: npm_config_cache
+    value: "$(Pipeline.Workspace)/.npm"
 
 stages:
   # ─────────────────────────────────────────
