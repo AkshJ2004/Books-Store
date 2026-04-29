@@ -20,8 +20,10 @@ export const useSubscription = () => {
     let plan: PlanType = PLANS.FREE;
 
     // 1. First Check: Clerk's `has` helper from useAuth
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (has?.({ product: 'pro' } as any) || has?.({ plan: 'pro' } as any)) {
         plan = PLANS.PRO;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } else if (has?.({ product: 'standard' } as any) || has?.({ plan: 'standard' } as any)) {
         plan = PLANS.STANDARD;
     } 
