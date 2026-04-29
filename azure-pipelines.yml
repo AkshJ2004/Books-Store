@@ -169,7 +169,7 @@ stages:
                 - task: AzureWebApp@1
                   inputs:
                     azureSubscription: "bookified-service-connection"
-                    appName: "bookified-production"
+                    appName: "bookified-prod-aksh"
                     appType: "webAppLinux"
                     package: "$(Pipeline.Workspace)/bookified-build/bookified.zip"
                     runtimeStack: "NODE|20-lts"
