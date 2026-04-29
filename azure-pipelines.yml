@@ -137,19 +137,17 @@ stages:
           runOnce:
             deploy:
               steps:
-                steps:
-                  - download: current
-                    artifact: bookified-build
-
-                  - task: AzureWebApp@1
-                    inputs:
-                      azureSubscription: "bookified-service-connection"
-                      appName: "bookified-staging"
-                      appType: "webAppLinux"
-                      package: "$(Pipeline.Workspace)/bookified-build/*.tar.gz"
-                      runtimeStack: "NODE|20-lts"
-                      startUpCommand: "npm start"
-                    displayName: "Deploy to staging slot"
+                - download: current
+                  artifact: bookified-build
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: "bookified-service-connection"
+                    appName: "bookified-staging"
+                    appType: "webAppLinux"
+                    package: "$(Pipeline.Workspace)/bookified-build/*.tar.gz"
+                    runtimeStack: "NODE|20-lts"
+                    startUpCommand: "npm start"
+                  displayName: "Deploy to staging slot"
 
   # ─────────────────────────────────────────
   # STAGE 4: Deploy to Production
@@ -168,16 +166,14 @@ stages:
           runOnce:
             deploy:
               steps:
-                steps:
-                  - download: current
-                    artifact: bookified-build
-
-                  - task: AzureWebApp@1
-                    inputs:
-                      azureSubscription: "bookified-service-connection"
-                      appName: "bookified-production"
-                      appType: "webAppLinux"
-                      package: "$(Pipeline.Workspace)/bookified-build/*.tar.gz"
-                      runtimeStack: "NODE|20-lts"
-                      startUpCommand: "npm start"
-                    displayName: "Deploy to production"
+                - download: current
+                  artifact: bookified-build
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: "bookified-service-connection"
+                    appName: "bookified-production"
+                    appType: "webAppLinux"
+                    package: "$(Pipeline.Workspace)/bookified-build/*.tar.gz"
+                    runtimeStack: "NODE|20-lts"
+                    startUpCommand: "npm start"
+                  displayName: "Deploy to production"
