@@ -106,8 +106,8 @@ stages:
             inputs:
               rootFolderOrFile: "$(Build.SourcesDirectory)"
               includeRootFolder: false
-              archiveType: "tar"
-              archiveFile: "$(Build.ArtifactStagingDirectory)/bookified.tar.gz"
+              archiveType: "zip"
+              archiveFile: "$(Build.ArtifactStagingDirectory)/bookified.zip"
               replaceExistingArchive: true
             displayName: "Archive build artifacts"
 
