@@ -88,7 +88,6 @@ stages:
           - script: npm ci
             displayName: "Install dependencies"
 
-          # Inject env vars for build
           - script: |
               echo "MONGODB_URI=$(MONGODB_URI)" >> .env.production
               echo "NEXT_PUBLIC_VAPI_API_KEY=$(NEXT_PUBLIC_VAPI_API_KEY)" >> .env.production
@@ -103,13 +102,12 @@ stages:
             env:
               NEXT_TELEMETRY_DISABLED: 1
 
-          # Archive the build output
           - task: ArchiveFiles@2
             inputs:
               rootFolderOrFile: "$(Build.SourcesDirectory)"
               includeRootFolder: false
               archiveType: "tar"
-              archiveFile: "$(Build.ArtifactStagingDirectory)/bookified-$(Build.BuildId).tar.gz"
+              archiveFile: "$(Build.ArtifactStagingDirectory)/bookified.tar.gz"
               replaceExistingArchive: true
             displayName: "Archive build artifacts"
 
@@ -144,7 +142,7 @@ stages:
                     azureSubscription: "bookified-service-connection"
                     appName: "bookified-staging"
                     appType: "webAppLinux"
-                    package: "$(Pipeline.Workspace)/bookified-build/bookified-$(Build.BuildId).tar.gz"
+                    package: "$(Pipeline.Workspace)/bookified-build/bookified.tar.gz"
                     runtimeStack: "NODE|20-lts"
                     startUpCommand: "npm start"
                   displayName: "Deploy to staging slot"
@@ -173,7 +171,7 @@ stages:
                     azureSubscription: "bookified-service-connection"
                     appName: "bookified-production"
                     appType: "webAppLinux"
-                    package: "$(Pipeline.Workspace)/bookified-build/bookified-$(Build.BuildId).tar.gz"
+                    package: "$(Pipeline.Workspace)/bookified-build/bookified.tar.gz"
                     runtimeStack: "NODE|20-lts"
                     startUpCommand: "npm start"
                   displayName: "Deploy to production"
