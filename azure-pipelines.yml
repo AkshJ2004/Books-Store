@@ -37,7 +37,7 @@ stages:
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: $(NODE_VERSION)
+              versionSpec: "22.x"
             displayName: "Install Node.js"
 
           - task: Cache@2
@@ -143,7 +143,7 @@ stages:
                     appName: "bookified-staging"
                     appType: "webAppLinux"
                     package: "$(Pipeline.Workspace)/bookified-build/bookified.zip"
-                    runtimeStack: "NODE|20-lts"
+                    runtimeStack: "NODE|22-lts"
                     startUpCommand: "npm start"
                   displayName: "Deploy to staging slot"
 
@@ -172,6 +172,6 @@ stages:
                     appName: "bookified-prod-aksh"
                     appType: "webAppLinux"
                     package: "$(Pipeline.Workspace)/bookified-build/bookified.zip"
-                    runtimeStack: "NODE|20-lts"
+                    runtimeStack: "NODE|22-lts"
                     startUpCommand: "npm start"
                   displayName: "Deploy to production"
