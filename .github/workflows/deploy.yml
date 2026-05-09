@@ -9,6 +9,7 @@ on:
 env:
   NODE_VERSION: "22.x"
   AZURE_WEBAPP_NAME: bookified-prod
+  RESOURCE_GROUP: bookified-rg
 
 jobs:
   build:
@@ -57,19 +58,12 @@ jobs:
           NEXT_PUBLIC_VAPI_API_KEY: ${{ secrets.NEXT_PUBLIC_VAPI_API_KEY }}
           NEXT_PUBLIC_ASSISTANT_ID: ${{ secrets.NEXT_PUBLIC_ASSISTANT_ID }}
 
-      - name: Prepare deployment package
+      - name: Prepare standalone package
         run: |
           cp -r public .next/standalone/public
           cp -r .next/static .next/standalone/.next/static
 
-          cat > .next/standalone/startup.sh << 'STARTUPEOF'
-          #!/bin/bash
-          export PORT=8080
-          node server.js
-          STARTUPEOF
-          chmod +x .next/standalone/startup.sh
-
-          cat > .next/standalone/package.json << 'PKGEOF'
+          cat > .next/standalone/package.json << 'EOF'
           {
             "name": "bookified",
             "version": "1.0.0",
@@ -80,13 +74,20 @@ jobs:
               "node": ">=22.0.0"
             }
           }
-          PKGEOF
+          EOF
 
-      - name: Upload build artifact
+      - name: Zip deployment package
+        run: |
+          cd .next/standalone
+          zip -r ../../deploy.zip . -x "*.git*"
+          cd ../..
+          echo "Zip size: $(du -sh deploy.zip)"
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bookified-build
-          path: .next/standalone/
+          name: bookified-deploy
+          path: deploy.zip
           retention-days: 1
 
   deploy:
@@ -98,15 +99,51 @@ jobs:
       url: https://bookified-prod.azurewebsites.net
 
     steps:
-      - name: Download build artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: bookified-build
-          path: ./deploy
+          name: bookified-deploy
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./deploy
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy zip to Azure App Service
+        run: |
+          az webapp deploy \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --src-path deploy.zip \
+            --type zip \
+            --async false \
+            --timeout 600
+
+      - name: Set startup command
+        run: |
+          az webapp config set \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --startup-file "node server.js"
+
+      - name: Restart app
+        run: |
+          az webapp restart \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting 30s for app to start..."
+          sleep 30
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net)
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "308" ]; then
+            echo "Deployment successful!"
+          else
+            echo "Got status $STATUS - check Azure logs"
+          fi
+
+      - name: Azure logout
+        run: az logout
+        if: always()
