@@ -10,7 +10,7 @@
 [![Clerk](https://img.shields.io/badge/Auth-Clerk-purple?style=for-the-badge)](https://clerk.com)
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 
-[🚀 Live Demo](#) · [🐛 Report Bug](../../issues) · [✨ Request Feature](../../issues)
+[🚀 Live Demo](https://books-store-eight-delta.vercel.app/) · [🐛 Report Bug](../../issues) · [✨ Request Feature](../../issues)
 
 ---
 
